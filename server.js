@@ -64,12 +64,16 @@ const USERS = [
 //  4. if matching user found, add the user object to the request object
 //     (aka, `req.user = matchedUser`)
 function gateKeeper(req, res, next) {
-  // your code should replace the line below
-  next();
+ 
+  const {user, pass} = Object.assign(
+    {user: null, pass: null}, queryString.parse(req.get('x-username-and-password')));
+    req.user = USERS.find(
+      (usr, index) => usr.userName === user && usr.password === pass);
+    next();
 }
 
 // Add the middleware to your app!
-
+app.use(gateKeeper);
 // this endpoint returns a json object representing the user making the request,
 // IF they supply valid user credentials. This endpoint assumes that `gateKeeper` 
 // adds the user object to the request if valid credentials were supplied.
@@ -80,7 +84,7 @@ app.get("/api/users/me", (req, res) => {
   }
   // we're only returning a subset of the properties
   // from the user object. Notably, we're *not*
-  // sending `password` or `isAdmin`.
+  // sending `password` or `isAdmin`. 
   const {firstName, lastName, id, userName, position} = req.user;
   return res.json({firstName, lastName, id, userName, position});
 });
@@ -88,3 +92,4 @@ app.get("/api/users/me", (req, res) => {
 app.listen(process.env.PORT, () => {
   console.log(`Your app is listening on port ${process.env.PORT}`);
 });
+
